@@ -210,6 +210,14 @@ void Template<Model>::operator()(Particles *particles, unsigned int ipart_min, u
     }  // Loop on particles
 }
 
+template <int Model>
+template <int RateId>
+inline double Template<Model>::ionizationRate(const int Z, const electricFields E)
+{
+    double delta = gamma_tunnel[Z] * E.inv;
+    return beta_tunnel[Z] * exp(-delta * one_third + alpha_tunnel[Z] * log(delta));
+}
+
 // IonizationTunnel : 0
 template <>
 Template<0>::Template(Params &params, Species *species) : Ionization(params, species)
