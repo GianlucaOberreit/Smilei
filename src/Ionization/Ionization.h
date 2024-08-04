@@ -13,15 +13,6 @@
 
 using namespace std;
 
-struct electricFields
-{
-    double *x;
-    double *y;
-    double *z;
-    double inv;  // inverse
-    double abs;  // absolute value in atomic units
-};
-
 //! Class Ionization: generic class allowing to define Ionization physics
 class Ionization
 {
@@ -52,16 +43,11 @@ class Ionization
     std::vector<std::vector<short> > ion_charge_per_bin_;
 
    protected:
-    inline void tunnelMonteCarloRoutine(Particles *particles, unsigned int ipart, vector<double> *Epart, Patch *patch,
-                                        Projector *Proj, const unsigned int Z, const electricFields E,
-                                        vector<double> &IonizRate_tunnel, vector<double> &Dnom_tunnel,
-                                        function<double(const int, const electricFields)> ionizationRate);
-
-    double eV_to_au;
-    double au_to_mec2;
-    double EC_to_au;
-    double au_to_w0;
-    double one_third;
+    const double eV_to_au;
+    const double au_to_mec2;
+    const double EC_to_au;
+    const double au_to_w0;
+    const double one_third;
 
     double reference_angular_frequency_SI;
     double dt;
