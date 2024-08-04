@@ -39,10 +39,10 @@ class Template : public Ionization
 
    private:
     template <int RateId>
-    inline void monteCarloRoutine(Particles *, unsigned int, Patch *, Projector *, const unsigned int,
+    void monteCarloRoutine(Particles *, unsigned int, Patch *, Projector *, const unsigned int,
                                   const electricFields, vector<double> &, vector<double> &);
     template <int RateId>
-    inline double ionizationRate(const int Z, const electricFields E);
+    double ionizationRate(const int Z, const electricFields E);
 
     // To be conditionally prepared
     // FullPPT
@@ -59,7 +59,7 @@ class Template : public Ionization
 
 template <int Model>
 template <int RateId>
-inline void Template<Model>::monteCarloRoutine(Particles *particles, unsigned int ipart, Patch *patch, Projector *Proj,
+void Template<Model>::monteCarloRoutine(Particles *particles, unsigned int ipart, Patch *patch, Projector *Proj,
                                                const unsigned int Z, const electricFields E,
                                                vector<double> &IonizRate_tunnel, vector<double> &Dnom_tunnel)
 {
@@ -212,7 +212,7 @@ void Template<Model>::operator()(Particles *particles, unsigned int ipart_min, u
 
 template <int Model>
 template <int RateId>
-inline double Template<Model>::ionizationRate(const int Z, const electricFields E)
+double Template<Model>::ionizationRate(const int Z, const electricFields E)
 {
     double delta = gamma_tunnel[Z] * E.inv;
     return beta_tunnel[Z] * exp(-delta * one_third + alpha_tunnel[Z] * log(delta));
@@ -246,7 +246,7 @@ Template<0>::Template(Params &params, Species *species) : Ionization(params, spe
 
 template <>
 template <>
-inline double Template<0>::ionizationRate<0>(const int Z, const electricFields E)
+double Template<0>::ionizationRate<0>(const int Z, const electricFields E)
 {
     double delta = gamma_tunnel[Z] * E.inv;
     return beta_tunnel[Z] * exp(-delta * one_third + alpha_tunnel[Z] * log(delta));
@@ -287,7 +287,7 @@ Template<1>::Template(Params &params, Species *species) : Ionization(params, spe
 
 template <>
 template <>
-inline double Template<1>::ionizationRate<0>(const int Z, const electricFields E)
+double Template<1>::ionizationRate<0>(const int Z, const electricFields E)
 {
     double delta = gamma_tunnel[Z] * E.inv;
     return beta_tunnel[Z] * exp(-delta * one_third + alpha_tunnel[Z] * log(delta));
@@ -327,7 +327,7 @@ Template<2>::Template(Params &params, Species *species) : Ionization(params, spe
 
 template <>
 template <>
-inline double Template<2>::ionizationRate<0>(const int Z, const electricFields E)
+double Template<2>::ionizationRate<0>(const int Z, const electricFields E)
 {
     const double delta = gamma_tunnel[Z] * E.inv;
     return beta_tunnel[Z] * exp(-delta * one_third + alpha_tunnel[Z] * log(delta) - E.abs * lambda_tunnel[Z]);
@@ -362,7 +362,7 @@ Template<3>::Template(Params &params, Species *species) : Ionization(params, spe
 // BSI Linear
 template <>
 template <>
-inline double Template<3>::ionizationRate<1>(const int Z, const electricFields E)
+double Template<3>::ionizationRate<1>(const int Z, const electricFields E)
 {
     const double ratio_of_IPs = IH / IonizationTables::ionization_energy(atomic_number_, Z);
     return au_to_w0 * (0.8 * E.abs * pow(ratio_of_IPs, 0.5));
@@ -371,7 +371,7 @@ inline double Template<3>::ionizationRate<1>(const int Z, const electricFields E
 // BSI Linear
 template <>
 template <>
-inline double Template<3>::ionizationRate<2>(const int Z, const electricFields E)
+double Template<3>::ionizationRate<2>(const int Z, const electricFields E)
 {
     const double ratio_of_IPs = IH / IonizationTables::ionization_energy(atomic_number_, Z);
     return au_to_w0 * (2.4 * (pow(E.abs, 2)) * pow(ratio_of_IPs, 2));
