@@ -36,7 +36,7 @@ class Template : public Ionization
 
    private:
     template <int RateId>
-    inline void monteCarloRoutine(Particles *, unsigned int, Patch *, Projector *, unsigned int,
+    inline void monteCarloRoutine(Particles *, unsigned int, Patch *, Projector *, const unsigned int,
                                   const electricFields, vector<double> &, vector<double> &);
     template <int RateId>
     inline double ionizationRate(const int Z, const electricFields E);
@@ -58,7 +58,7 @@ class Template : public Ionization
 template <int Model>
 template <int RateId>
 inline void Template<Model>::monteCarloRoutine(Particles *particles, unsigned int ipart, Patch *patch, Projector *Proj,
-                                               unsigned int Z, const electricFields E,
+                                               const unsigned int Z, const electricFields E,
                                                vector<double> &IonizRate_tunnel, vector<double> &Dnom_tunnel)
 {
     double TotalIonizPot, factorJion, ran_p, Mult, D_sum, P_sum, Pint_tunnel;
@@ -204,7 +204,7 @@ void Template<Model>::operator()(Particles *particles, unsigned int ipart_min, u
         }
         E.inv = 1. / E.abs;
 
-        monteCarloRoutine(particles, ipart, patch, Proj, Z, E, IonizRate_tunnel, Dnom_tunnel);
+        monteCarloRoutine<0>(particles, ipart, patch, Proj, Z, E, IonizRate_tunnel, Dnom_tunnel);
     }  // Loop on particles
 }
 
