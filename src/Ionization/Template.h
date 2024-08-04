@@ -1,5 +1,5 @@
-#ifndef Template_H
-#define Template_H
+#ifndef TEMPLATE_H
+#define TEMPLATE_H
 
 #include <cmath>
 #include <functional>
