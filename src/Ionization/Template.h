@@ -36,7 +36,7 @@ class Template : public Ionization
 
    private:
     template <int RateId>
-    inline void monteCarloRoutine(Particles *, unsigned int, vector<double> *, Patch *, Projector *, const unsigned int,
+    inline void monteCarloRoutine(Particles *, unsigned int, Patch *, Projector *, const unsigned int,
                                   const electricFields, vector<double> &, vector<double> &);
     template <int RateId>
     inline double ionizationRate(const int Z, const electricFields E);
@@ -57,8 +57,8 @@ class Template : public Ionization
 
 template <int Model>
 template <int RateId>
-inline void Template<Model>::monteCarloRoutine(Particles *particles, unsigned int ipart, vector<double> *Epart,
-                                               Patch *patch, Projector *Proj, const unsigned int Z, const electricFields E,
+inline void Template<Model>::monteCarloRoutine(Particles *particles, unsigned int ipart, Patch *patch, Projector *Proj,
+                                               const unsigned int Z, const electricFields E,
                                                vector<double> &IonizRate_tunnel, vector<double> &Dnom_tunnel)
 {
     double TotalIonizPot, factorJion, ran_p, Mult, D_sum, P_sum, Pint_tunnel;
@@ -204,7 +204,7 @@ void Template<Model>::operator()(Particles *particles, unsigned int ipart_min, u
         }
         E.inv = 1. / E.abs;
 
-        monteCarloRoutine(particles, ipart, Epart, patch, Proj, Z, E, IonizRate_tunnel, Dnom_tunnel);
+        monteCarloRoutine(particles, ipart, patch, Proj, Z, E, IonizRate_tunnel, Dnom_tunnel);
     }  // Loop on particles
 }
 
@@ -381,8 +381,6 @@ void Template<3>::operator()(Particles *particles, unsigned int ipart_min, unsig
                                           // ioniz. rate.
     vector<double> IonizRate_BSI_quadratic(atomic_number_), Dnom_BSI_quadratic(atomic_number_);
 
-    double factorJion_0 = au_to_mec2 * EC_to_au * EC_to_au * invdt;  // Will be used to calc. ionization current.
-
     int nparts = Epart->size() / 3;  // Over 3 because there are 3 Dims. Epart is like [part1_Ex, part2_Ex,
                                      // ... partnparts_Ex, part1_Ey, part2_Ey,...partnparts_Ey, part1_Ez,
                                      // part2_Ez, partnparts_Ez]}
@@ -394,9 +392,6 @@ void Template<3>::operator()(Particles *particles, unsigned int ipart_min, unsig
     {
         Z = (unsigned int)(particles->charge(ipart));  // current charge state of the particle number ipart of species
                                                        // called ''species'' with atomic no = atomic_number_
-        double E_cr = pow(Potential[Z], 2) / (4 * (Z + 1));  //  Formula from DonnaStrickland, 1991, page5, eq(5) [Laser
-                                                             //  ionization of noble gases by Coulomb-barrier suppression]
-        // There's absolutely no usage of this E_cr in the code.
 
         // If ion already fully ionized then skip and go to next particle
         if (Z == atomic_number_)
@@ -428,15 +423,15 @@ void Template<3>::operator()(Particles *particles, unsigned int ipart_min, unsig
 
         if (BSI_rate_quadratic >= BSI_rate_linear)
         {
-            monteCarloRoutine<2>(particles, ipart, Epart, patch, Proj, Z, E, IonizRate_BSI_quadratic, Dnom_BSI_quadratic);
+            monteCarloRoutine<2>(particles, ipart, patch, Proj, Z, E, IonizRate_BSI_quadratic, Dnom_BSI_quadratic);
         }
         else if (std::min(Tunnel_rate, BSI_rate_quadratic) == BSI_rate_quadratic)
         {
-            monteCarloRoutine<1>(particles, ipart, Epart, patch, Proj, Z, E, IonizRate_BSI_linear, Dnom_BSI_linear);
+            monteCarloRoutine<1>(particles, ipart, patch, Proj, Z, E, IonizRate_BSI_linear, Dnom_BSI_linear);
         }
         else
         {
-            monteCarloRoutine<0>(particles, ipart, Epart, patch, Proj, Z, E, IonizRate_tunnel, Dnom_tunnel);
+            monteCarloRoutine<0>(particles, ipart, patch, Proj, Z, E, IonizRate_tunnel, Dnom_tunnel);
         }
     }  // END loop on particles
 
