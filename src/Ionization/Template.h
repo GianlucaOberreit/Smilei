@@ -1,3 +1,6 @@
+#ifndef Template_H
+#define Template_H
+
 #include <cmath>
 #include <functional>
 #include <vector>
@@ -44,7 +47,6 @@ class Template : public Ionization
     // To be conditionally prepared
     // FullPPT
     std::vector<double> Magnetic_quantum_number;
-    double ionizationRateTunnel(const int Z, const electricFields E);
 
     // Tong&Ling
     double ionization_tl_parameter_;
@@ -236,7 +238,7 @@ Template<0>::Template(Params &params, Species *species) : Ionization(params, spe
 
 template <>
 template <>
-double Template<0>::ionizationRate<0>(const int Z, const electricFields E)
+inline double Template<0>::ionizationRate<0>(const int Z, const electricFields E)
 {
     double delta = gamma_tunnel[Z] * E.inv;
     return beta_tunnel[Z] * exp(-delta * one_third + alpha_tunnel[Z] * log(delta));
@@ -277,7 +279,7 @@ Template<1>::Template(Params &params, Species *species) : Ionization(params, spe
 
 template <>
 template <>
-double Template<1>::ionizationRate<0>(const int Z, const electricFields E)
+inline double Template<1>::ionizationRate<0>(const int Z, const electricFields E)
 {
     double delta = gamma_tunnel[Z] * E.inv;
     return beta_tunnel[Z] * exp(-delta * one_third + alpha_tunnel[Z] * log(delta));
@@ -317,7 +319,7 @@ Template<2>::Template(Params &params, Species *species) : Ionization(params, spe
 
 template <>
 template <>
-double Template<2>::ionizationRate<0>(const int Z, const electricFields E)
+inline double Template<2>::ionizationRate<0>(const int Z, const electricFields E)
 {
     const double delta = gamma_tunnel[Z] * E.inv;
     return beta_tunnel[Z] * exp(-delta * one_third + alpha_tunnel[Z] * log(delta) - E.abs * lambda_tunnel[Z]);
@@ -352,7 +354,7 @@ Template<3>::Template(Params &params, Species *species) : Ionization(params, spe
 // BSI Linear
 template <>
 template <>
-double Template<3>::ionizationRate<1>(const int Z, const electricFields E)
+inline double Template<3>::ionizationRate<1>(const int Z, const electricFields E)
 {
     const double ratio_of_IPs = IH / IonizationTables::ionization_energy(atomic_number_, Z);
     return au_to_w0 * (0.8 * E.abs * pow(ratio_of_IPs, 0.5));
@@ -361,7 +363,7 @@ double Template<3>::ionizationRate<1>(const int Z, const electricFields E)
 // BSI Linear
 template <>
 template <>
-double Template<3>::ionizationRate<2>(const int Z, const electricFields E)
+inline double Template<3>::ionizationRate<2>(const int Z, const electricFields E)
 {
     const double ratio_of_IPs = IH / IonizationTables::ionization_energy(atomic_number_, Z);
     return au_to_w0 * (2.4 * (pow(E.abs, 2)) * pow(ratio_of_IPs, 2));
@@ -436,3 +438,5 @@ void Template<3>::operator()(Particles *particles, unsigned int ipart_min, unsig
     }  // END loop on particles
 
 }  // void IonizationTunnelBSI::operator()(arg1, arg2, ...) scope end.
+
+#endif
