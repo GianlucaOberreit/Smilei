@@ -319,8 +319,8 @@ template <>
 template <>
 double Template<2>::ionizationRate<0>(const int Z, const electricFields E)
 {
-    double delta = gamma_tunnel[Z] * E.inv;
-    return beta_tunnel[Z] * exp(-delta * one_third + alpha_tunnel[Z] * log(delta) - E * lambda_tunnel[Z]);
+    const double delta = gamma_tunnel[Z] * E.inv;
+    return beta_tunnel[Z] * exp(-delta * one_third + alpha_tunnel[Z] * log(delta) - E.abs * lambda_tunnel[Z]);
 }
 
 // BSI: 3
@@ -354,7 +354,7 @@ template <>
 template <>
 double Template<3>::ionizationRate<1>(const int Z, const electricFields E)
 {
-    double ratio_of_IPs = IH / IonizationTables::ionization_energy(atomic_number_, Z);
+    const double ratio_of_IPs = IH / IonizationTables::ionization_energy(atomic_number_, Z);
     return au_to_w0 * (0.8 * E.abs * pow(ratio_of_IPs, 0.5));
 }
 
@@ -363,7 +363,7 @@ template <>
 template <>
 double Template<3>::ionizationRate<2>(const int Z, const electricFields E)
 {
-    double ratio_of_IPs = IH / IonizationTables::ionization_energy(atomic_number_, Z);
+    const double ratio_of_IPs = IH / IonizationTables::ionization_energy(atomic_number_, Z);
     return au_to_w0 * (2.4 * (pow(E.abs, 2)) * pow(ratio_of_IPs, 2));
 }
 
