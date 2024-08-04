@@ -2,12 +2,9 @@
 #define IonizationFactory_H
 
 #include "Ionization.h"
-#include "IonizationTunnel.h"
+#include "Template.h"
 #include "IonizationFromRate.h"
 #include "IonizationTunnelEnvelopeAveraged.h"
-#include "IonizationTunnelBSI.h"
-#include "IonizationTunnelTL.h"
-#include "IonizationTunnelFullPPT.h"
 
 #include "Params.h"
 
@@ -34,7 +31,7 @@ public:
                 ERROR( "The ionization model for species interacting with envelope is tunnel_envelope_averaged" );
             }
             
-            Ionize = new IonizationTunnel( params, species );
+            Ionize = new Template<0>( params, species );
             
         } else if( model == "tunnel_envelope_averaged" ) {
             if( species->max_charge_ > ( int )species->atomic_number_ ) {
@@ -68,7 +65,7 @@ public:
                 ERROR( "The ionization model for species interacting with envelope is tunnel_envelope_averaged" );
             }
 
-            Ionize = new IonizationTunnelBSI(params, species);
+            Ionize = new Template<3>(params, species);
 
         } else if(model == "tunnel_TL") { // added by Arseny Mironov. Put keyword "tunnel_TL" for the Tong-Lin ionization model
                                           // in the species description in your namelist.
@@ -78,7 +75,7 @@ public:
             if( (params.Laser_Envelope_model) ) { // same as for simple Tunnel Ionziation
                 ERROR( "The ionization model for species interacting with envelope is tunnel_envelope_averaged" );
             }
-            Ionize = new IonizationTunnelTL(params, species);    
+            Ionize = new Template<2>(params, species);    
 
         } else if(model == "tunnel_full_PPT") { // added by Arseny Mironov. Put keyword "tunnel_full_PPT" for the tunneling ionization model 
                                                 // with account for the magnetic quantum number in the species description in your namelist.
@@ -91,7 +88,7 @@ public:
                 ERROR( "The ionization model for species interacting with envelope is tunnel_envelope_averaged" );
             }
 
-            Ionize = new IonizationTunnelFullPPT( params, species );
+            Ionize = new Template<1>( params, species );
         }
         
         return Ionize;
