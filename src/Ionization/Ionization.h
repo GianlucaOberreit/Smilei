@@ -43,11 +43,11 @@ class Ionization
     std::vector<std::vector<short> > ion_charge_per_bin_;
 
    protected:
-    const double eV_to_au;
-    const double au_to_mec2;
-    const double EC_to_au;
-    const double au_to_w0;
-    const double one_third;
+    double eV_to_au;
+    double au_to_mec2;
+    double EC_to_au;
+    double au_to_w0;
+    double one_third;
 
     double reference_angular_frequency_SI;
     double dt;
