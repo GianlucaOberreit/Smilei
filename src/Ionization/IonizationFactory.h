@@ -6,7 +6,7 @@
 #include "IonizationTunnelEnvelopeAveraged.h"
 #include "Params.h"
 #include "Species.h"
-#include "Template.h"
+#include "IonizationTunnel.h"
 #include "Tools.h"
 
 //! this class create and associate the right ionization model to species
@@ -37,13 +37,13 @@ class IonizationFactory
         if (model == "from_rate") {
             Ionize = new IonizationFromRate(params, species);
         } else if (model == "tunnel") {
-            Ionize = new Template<0>(params, species); // Tunnel, the original included in Smilei
+            Ionize = new IonizationTunnel<0>(params, species); // Tunnel, the original included in Smilei
         } else if (model == "tunnel_full_PPT") {  
-            Ionize = new Template<1>(params, species); // FullPPT
+            Ionize = new IonizationTunnel<1>(params, species); // FullPPT
         } else if (model == "tunnel_TL") {  
-            Ionize = new Template<2>(params, species); // Tong&Ling
+            Ionize = new IonizationTunnel<2>(params, species); // Tong&Ling
         } else if (model == "tunnel_BSI") {  
-            Ionize = new Template<3>(params, species); // BSI
+            Ionize = new IonizationTunnel<3>(params, species); // BSI
         }
 
         return Ionize;

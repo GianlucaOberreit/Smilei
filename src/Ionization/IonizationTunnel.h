@@ -25,10 +25,10 @@ struct electricFields
 };
 
 template <int Model>
-class Template : public Ionization
+class IonizationTunnel : public Ionization
 {
    public:
-    inline Template(Params &params, Species *species);
+    inline IonizationTunnel(Params &params, Species *species);
 
     inline void operator()(Particles *, unsigned int, unsigned int, std::vector<double> *, Patch *, Projector *,
                     int ipart_ref = 0) override;
@@ -58,7 +58,7 @@ class Template : public Ionization
 };
 
 template <int Model>
-void Template<Model>::ionizationTunnelWithTasks( Particles *particles, unsigned int ipart_min, unsigned int ipart_max, 
+void IonizationTunnel<Model>::ionizationTunnelWithTasks( Particles *particles, unsigned int ipart_min, unsigned int ipart_max, 
                                                   vector<double> *Epart, Patch *patch, Projector *Proj, int ibin, int bin_shift, 
                                                   double *b_Jx, double *b_Jy, double *b_Jz, int ipart_ref )
 {
@@ -194,7 +194,7 @@ void Template<Model>::ionizationTunnelWithTasks( Particles *particles, unsigned 
 
 template <int Model>
 template <int RateId>
-inline void Template<Model>::monteCarloRoutine(Particles *particles, unsigned int ipart, Patch *patch, Projector *Proj,
+inline void IonizationTunnel<Model>::monteCarloRoutine(Particles *particles, unsigned int ipart, Patch *patch, Projector *Proj,
                                                const unsigned int Z, const electricFields E,
                                                vector<double> &IonizRate_tunnel, vector<double> &Dnom_tunnel)
 {
@@ -308,7 +308,7 @@ inline void Template<Model>::monteCarloRoutine(Particles *particles, unsigned in
 }
 
 template <int Model>
-inline void Template<Model>::operator()(Particles *particles, unsigned int ipart_min, unsigned int ipart_max,
+inline void IonizationTunnel<Model>::operator()(Particles *particles, unsigned int ipart_min, unsigned int ipart_max,
                                  vector<double> *Epart, Patch *patch, Projector *Proj, int ipart_ref)
 
 {
@@ -347,7 +347,7 @@ inline void Template<Model>::operator()(Particles *particles, unsigned int ipart
 
 template <int Model>
 template <int RateId>
-inline double Template<Model>::ionizationRate(const int Z, const electricFields E)
+inline double IonizationTunnel<Model>::ionizationRate(const int Z, const electricFields E)
 {
     double delta = gamma_tunnel[Z] * E.inv;
     return beta_tunnel[Z] * exp(-delta * one_third + alpha_tunnel[Z] * log(delta));
@@ -355,7 +355,7 @@ inline double Template<Model>::ionizationRate(const int Z, const electricFields 
 
 // IonizationTunnel : 0
 template <>
-inline Template<0>::Template(Params &params, Species *species) : Ionization(params, species)
+inline IonizationTunnel<0>::IonizationTunnel(Params &params, Species *species) : Ionization(params, species)
 {
     DEBUG("Creating the Tunnel Ionizaton class");
 
@@ -381,7 +381,7 @@ inline Template<0>::Template(Params &params, Species *species) : Ionization(para
 
 template <>
 template <>
-inline double Template<0>::ionizationRate<0>(const int Z, const electricFields E)
+inline double IonizationTunnel<0>::ionizationRate<0>(const int Z, const electricFields E)
 {
     double delta = gamma_tunnel[Z] * E.inv;
     return beta_tunnel[Z] * exp(-delta * one_third + alpha_tunnel[Z] * log(delta));
@@ -390,7 +390,7 @@ inline double Template<0>::ionizationRate<0>(const int Z, const electricFields E
 // IonizationTunnelFullPPT: 1
 
 template <>
-inline Template<1>::Template(Params &params, Species *species) : Ionization(params, species)
+inline IonizationTunnel<1>::IonizationTunnel(Params &params, Species *species) : Ionization(params, species)
 {
     DEBUG("Creating the Tunnel Ionizaton class");
 
@@ -422,7 +422,7 @@ inline Template<1>::Template(Params &params, Species *species) : Ionization(para
 
 template <>
 template <>
-inline double Template<1>::ionizationRate<0>(const int Z, const electricFields E)
+inline double IonizationTunnel<1>::ionizationRate<0>(const int Z, const electricFields E)
 {
     double delta = gamma_tunnel[Z] * E.inv;
     return beta_tunnel[Z] * exp(-delta * one_third + alpha_tunnel[Z] * log(delta));
@@ -431,7 +431,7 @@ inline double Template<1>::ionizationRate<0>(const int Z, const electricFields E
 // Tong&Ling: 2
 
 template <>
-inline Template<2>::Template(Params &params, Species *species) : Ionization(params, species)
+inline IonizationTunnel<2>::IonizationTunnel(Params &params, Species *species) : Ionization(params, species)
 {
     DEBUG("Creating the Tong-Lin Tunnel Ionizaton class");
 
@@ -462,7 +462,7 @@ inline Template<2>::Template(Params &params, Species *species) : Ionization(para
 
 template <>
 template <>
-inline double Template<2>::ionizationRate<0>(const int Z, const electricFields E)
+inline double IonizationTunnel<2>::ionizationRate<0>(const int Z, const electricFields E)
 {
     const double delta = gamma_tunnel[Z] * E.inv;
     return beta_tunnel[Z] * exp(-delta * one_third + alpha_tunnel[Z] * log(delta) - E.abs * lambda_tunnel[Z]);
@@ -471,7 +471,7 @@ inline double Template<2>::ionizationRate<0>(const int Z, const electricFields E
 // BSI: 3
 
 template <>
-inline Template<3>::Template(Params &params, Species *species) : Ionization(params, species)
+inline IonizationTunnel<3>::IonizationTunnel(Params &params, Species *species) : Ionization(params, species)
 {
     DEBUG("Creating the Tunnel BSI Ionizaton class");
 
@@ -497,7 +497,7 @@ inline Template<3>::Template(Params &params, Species *species) : Ionization(para
 // BSI Linear
 template <>
 template <>
-inline double Template<3>::ionizationRate<1>(const int Z, const electricFields E)
+inline double IonizationTunnel<3>::ionizationRate<1>(const int Z, const electricFields E)
 {
     const double ratio_of_IPs = IH / IonizationTables::ionization_energy(atomic_number_, Z);
     return au_to_w0 * (0.8 * E.abs * pow(ratio_of_IPs, 0.5));
@@ -506,14 +506,14 @@ inline double Template<3>::ionizationRate<1>(const int Z, const electricFields E
 // BSI Linear
 template <>
 template <>
-inline double Template<3>::ionizationRate<2>(const int Z, const electricFields E)
+inline double IonizationTunnel<3>::ionizationRate<2>(const int Z, const electricFields E)
 {
     const double ratio_of_IPs = IH / IonizationTables::ionization_energy(atomic_number_, Z);
     return au_to_w0 * (2.4 * (pow(E.abs, 2)) * pow(ratio_of_IPs, 2));
 }
 
 template <>
-inline void Template<3>::operator()(Particles *particles, unsigned int ipart_min, unsigned int ipart_max,
+inline void IonizationTunnel<3>::operator()(Particles *particles, unsigned int ipart_min, unsigned int ipart_max,
                              vector<double> *Epart, Patch *patch, Projector *Proj, int ipart_ref)
 {
     unsigned int Z;
