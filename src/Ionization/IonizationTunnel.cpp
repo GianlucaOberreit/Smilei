@@ -39,7 +39,7 @@ IonizationTunnel::IonizationTunnel( Params &params, Species *species ) : Ionizat
         double cst      = ( ( double )Z+1.0 ) * sqrt( 2.0/Potential[Z] );
         alpha_tunnel[Z] = cst-1.0;
         beta_tunnel[Z]  = pow( 2, alpha_tunnel[Z] ) * ( 8.*Azimuthal_quantum_number[Z]+4.0 ) / ( cst*tgamma( cst ) ) * Potential[Z] * au_to_w0;
-        gamma_tunnel[Z] = 2.0 * pow( 2.0*Potential[Z], 1.5 );
+        gamma_tunnel[Z] = 2.0 * sqrt( 2.0*Potential[Z] * 2.0*Potential[Z] * 2.0*Potential[Z]  );
     }
 
     DEBUG( "Finished Creating the Tunnel Ionizaton class" );
@@ -53,7 +53,7 @@ void IonizationTunnel::operator()( Particles *particles, unsigned int ipart_min,
 
     unsigned int Z, Zp1, newZ, k_times;
     double TotalIonizPot, E, invE, factorJion, delta, ran_p, Mult, D_sum, P_sum, Pint_tunnel;
-    vector<double> IonizRate_tunnel( atomic_number_ ), Dnom_tunnel( atomic_number_ );
+    vector<double> IonizRate_tunnel( atomic_number_ ), Dnom_tunnel( atomic_number_ , 0.);
     LocalFields Jion;
     double factorJion_0 = au_to_mec2 * EC_to_au*EC_to_au * invdt;
     
@@ -73,9 +73,9 @@ void IonizationTunnel::operator()( Particles *particles, unsigned int ipart_min,
         }
         
         // Absolute value of the electric field normalized in atomic units
-        E = EC_to_au * sqrt( pow( *( Ex+ipart-ipart_ref ), 2 )
-                             +pow( *( Ey+ipart-ipart_ref ), 2 )
-                             +pow( *( Ez+ipart-ipart_ref ), 2 ) );
+        E = EC_to_au * sqrt( (*( Ex+ipart-ipart_ref )) * (*( Ex+ipart-ipart_ref ))
+                             + (*( Ey+ipart-ipart_ref )) * (*( Ey+ipart-ipart_ref ))
+                             + (*( Ez+ipart-ipart_ref )) * (*( Ez+ipart-ipart_ref )) );
         if( E<1e-10 ) {
             continue;
         }
@@ -208,9 +208,9 @@ void IonizationTunnel::ionizationTunnelWithTasks( Particles *particles, unsigned
         }
         
         // Absolute value of the electric field normalized in atomic units
-        E = EC_to_au * sqrt( pow( *( Ex+ipart-ipart_ref ), 2 )
-                             +pow( *( Ey+ipart-ipart_ref ), 2 )
-                             +pow( *( Ez+ipart-ipart_ref ), 2 ) );
+        E = EC_to_au * sqrt( (*( Ex+ipart-ipart_ref )) * (*( Ex+ipart-ipart_ref ))
+                             + (*( Ey+ipart-ipart_ref )) * (*( Ey+ipart-ipart_ref ))
+                             + (*( Ez+ipart-ipart_ref )) * (*( Ez+ipart-ipart_ref )) );
         if( E<1e-10 ) {
             continue;
         }

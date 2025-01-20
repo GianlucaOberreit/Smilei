@@ -398,19 +398,6 @@ void VectorPatch::dynamics( Params &params,
     timers.multiphoton_Breit_Wheeler_timer.updateThreaded( *this, params.printNow( itime ) );
 #endif
 
-    timers.syncPart.restart();
-    for( unsigned int ispec=0 ; ispec<( *this )( 0 )->vecSpecies.size(); ispec++ ) {
-        Species *spec = species( 0, ispec );
-        if ( (!params.Laser_Envelope_model) && (spec->isProj( time_dual, simWindow )) ){
-            SyncVectorPatch::initExchParticles( ( *this ), ispec, params, smpi ); // Included sortParticles
-        } // end condition on Species and on envelope model
-    } // end loop on species
-    //MESSAGE("exchange particles");
-    timers.syncPart.update( params.printNow( itime ) );
-
-#ifdef __DETAILED_TIMERS
-    timers.sorting.update( *this, params.printNow( itime ) );
-#endif
 } // END dynamics
 
 // ---------------------------------------------------------------------------------------------------------------------
@@ -456,6 +443,18 @@ void VectorPatch::projectionForDiags( Params &params,
     }
 
 } // END projection for diags
+
+void VectorPatch::initExchParticles( Params &params, SmileiMPI *smpi, SimWindow *simWindow,
+        double time_dual, Timers &timers, int itime )
+{
+    timers.syncPart.restart();
+    for( unsigned int ispec=0 ; ispec<( *this )( 0 )->vecSpecies.size(); ispec++ ) {
+        if( species( 0, ispec )->isProj( time_dual, simWindow ) ) {
+            SyncVectorPatch::initExchParticles( *this, ispec, params, smpi );
+        }
+    }
+    timers.syncPart.update( params.printNow( itime ) );
+}
 
 // ---------------------------------------------------------------------------------------------------------------------
 //! For all patches, exchange particles and sort them.
@@ -541,7 +540,7 @@ void VectorPatch::injectParticlesFromBoundaries(Params &params, Timers &timers, 
     timers.particleInjection.restart();
 
     //#pragma omp for schedule(runtime)
-    #pragma omp single
+    #pragma omp master
     for( unsigned int ipatch=0 ; ipatch<this->size() ; ipatch++ ) {
 
         Patch * patch = ( *this )( ipatch );
@@ -780,6 +779,7 @@ void VectorPatch::injectParticlesFromBoundaries(Params &params, Timers &timers, 
         }
         
     } // end for ipatch
+    #pragma omp barrier
 
     timers.particleInjection.update( params.printNow( itime ) );
 }
@@ -1170,6 +1170,7 @@ void VectorPatch::finalizeSyncAndBCFields( Params &params, SmileiMPI *smpi, SimW
         }
 
         timers.maxwellBC.restart();
+        SMILEI_PY_SAVE_MASTER_THREAD
         #pragma omp for schedule(static)
         for( unsigned int ipatch=0 ; ipatch<this->size() ; ipatch++ ) {
             // Applies boundary conditions on B
@@ -1177,6 +1178,7 @@ void VectorPatch::finalizeSyncAndBCFields( Params &params, SmileiMPI *smpi, SimW
                 ( *this )( ipatch )->EMfields->boundaryConditions( time_dual, ( *this )( ipatch ), simWindow );
 
         }
+        SMILEI_PY_RESTORE_MASTER_THREAD
         SyncVectorPatch::exchangeForPML( params, (*this), smpi );
 
         #pragma omp for schedule(static)
@@ -1285,9 +1287,6 @@ void VectorPatch::runAllDiags( Params &/*params*/, SmileiMPI *smpi, unsigned int
     for( unsigned int idiag = 0 ; idiag < globalDiags.size() ; idiag++ ) {
         if( globalDiags[idiag]->timeSelection->theTimeIsNow( itime ) ) {
 
-            //std::cout << " " << dynamic_cast<DiagnosticScalar*>( globalDiags[idiag] )
-	   //	      << std::endl;
-
             if (dynamic_cast<DiagnosticScalar*>( globalDiags[idiag])) {
                 //need_particles = true;
                 //need_fields    = true;
@@ -1315,7 +1314,7 @@ void VectorPatch::runAllDiags( Params &/*params*/, SmileiMPI *smpi, unsigned int
             } else if (dynamic_cast<DiagnosticFields*>(localDiags[idiag])) {   
                 need_fields    = true;
             } else if (dynamic_cast<DiagnosticPerformances*>(localDiags[idiag])) {   
-		        // Nothing to be done
+                // Nothing to be done
             } else {
                 need_particles = true;
                 need_fields    = true; 
@@ -1443,10 +1442,12 @@ void VectorPatch::runAllDiags( Params &/*params*/, SmileiMPI *smpi, unsigned int
 
         if( globalDiags[idiag]->theTimeIsNow_ ) {
             // All patches run
+            SMILEI_PY_SAVE_MASTER_THREAD
             #pragma omp for schedule(runtime)
             for( unsigned int ipatch=0 ; ipatch<size() ; ipatch++ ) {
                 globalDiags[idiag]->run( ( *this )( ipatch ), itime, simWindow );
             }
+            SMILEI_PY_RESTORE_MASTER_THREAD
             // MPI procs gather the data and compute
             #pragma omp single
             smpi->computeGlobalDiags( globalDiags[idiag], itime );
@@ -1506,12 +1507,6 @@ void VectorPatch::runAllDiags( Params &/*params*/, SmileiMPI *smpi, unsigned int
 
     }
     timers.diags.update();
-
-    if( itime==0 ) {
-        for( unsigned int idiag = 0 ; idiag < diag_timers_.size() ; idiag++ ) {
-            diag_timers_[idiag]->reboot();
-        }
-    }
 
 } // END runAllDiags
 
@@ -1635,13 +1630,14 @@ void VectorPatch::runAllDiagsTasks( Params &, SmileiMPI *smpi, unsigned int itim
     }
     timers.diags.update();
 
-    if (itime==0) {
-        for( unsigned int idiag = 0 ; idiag < diag_timers_.size() ; idiag++ )
-            diag_timers_[idiag]->reboot();
-    }
-
 } // END runAllDiags
 
+void VectorPatch::rebootDiagTimers()
+{
+    for( unsigned int idiag = 0 ; idiag < diag_timers_.size() ; idiag++ ) {
+        diag_timers_[idiag]->reboot();
+    }
+} 
 
 // ---------------------------------------------------------------------------------------------------------------------
 // Check if rho is null (MPI & patch sync)
@@ -4032,9 +4028,10 @@ void VectorPatch::applyAntennas( double time )
         } else {
 
             // Get intensity from antenna of the first patch
-            #pragma omp single
+            #pragma omp master
             antenna_intensity_ = patches_[0]->EMfields->antennas[iAntenna].time_profile->valueAt( time );
-
+            #pragma omp barrier
+            
             // Loop patches to apply
             #pragma omp for schedule(static)
             for( unsigned int ipatch=0 ; ipatch<size() ; ipatch++ ) {
@@ -4586,16 +4583,6 @@ void VectorPatch::ponderomotiveUpdatePositionAndCurrents( Params &params,
     timers.cell_keys.update( *this, params.printNow( itime ) );
 #endif
 
-    timers.syncPart.restart();
-    for( unsigned int ispec=0 ; ispec<( *this )( 0 )->vecSpecies.size(); ispec++ ) {
-        if( ( *this )( 0 )->vecSpecies[ispec]->isProj( time_dual, simWindow ) ) {
-            SyncVectorPatch::initExchParticles( ( *this ), ispec, params, smpi ); // Included sortParticles
-        } // end condition on species
-    } // end loop on species
-    timers.syncPart.update( params.printNow( itime ) );
-
-
-
 } // END ponderomotiveUpdatePositionAndCurrents
 
 
@@ -4970,6 +4957,7 @@ void VectorPatch::dynamicsWithoutTasks( Params &params,
     diag_PartEventTracing = smpi->diagPartEventTracing( time_dual, params.timestep);
 #endif
 
+    SMILEI_PY_SAVE_MASTER_THREAD
     #pragma omp for schedule(runtime)
         for( unsigned int ipatch=0 ; ipatch<this->size() ; ipatch++ ) {
             ( *this )( ipatch )->EMfields->restartRhoJ();
@@ -5026,6 +5014,7 @@ void VectorPatch::dynamicsWithoutTasks( Params &params,
             } // end loop on species
             //MESSAGE("species dynamics");
         } // end loop on patches
+    SMILEI_PY_RESTORE_MASTER_THREAD
 }
 
 void VectorPatch::ponderomotiveUpdateSusceptibilityAndMomentumWithoutTasks( Params &params,
