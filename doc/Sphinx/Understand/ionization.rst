@@ -403,7 +403,7 @@ Super-imposed (in red) is the corresponding theoretical prediction.
 References
 ^^^^^^^^^^
 
-.. [Ammosov1986] `M. V. Ammosov, N. B. Delone, and V. P. Krainov, Sov. Phys. JETP 64, 1191 (1986) <http://www.jetp.ac.ru/cgi-bin/dn/e_064_06_1191.pdf>`_
+.. [Ammosov1986] `M. V. Ammosov, N. B. Delone, and V. P. Krainov, Sov. Phys. JETP 64, 1191 (1986) <http://www.jetp.ras.ru/cgi-bin/dn/e_064_06_1191.pdf>`_
 
 .. [Nuter2011] `R. Nuter et al., Phys. of Plasmas 19, 033107 (2011) <http://dx.doi.org/10.1063/1.3559494>`_
 
